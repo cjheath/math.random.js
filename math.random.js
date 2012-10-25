@@ -9,7 +9,7 @@
  *
  * Copyright Clifford Heath, 2011. MIT License, see the LICENSE.txt file.
  *
- * Adapted from Alea, http://baagoe.com/en/RandomMusings/javascript/
+ * Adapted from Alea, http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
  * Johannes BaagÃ¸e <baagoe@baagoe.com>, 2010
  * "The period is close to 2^116, it passes BigCrush, the fastest javascript PRNG I know that does so"
  */
@@ -55,12 +55,16 @@
       (Math.random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
   };
 
-  // Generate a UUID. Fragment nicked from plugins.jquery.com: jquery.uuid.js
+  // Generate a UUID. About 2us in V8 on my 2GHz Macbook Pro, down from 5 using the jquery.uuid.js assemblage.
   this.random.uuid = function() {
-    var make4 = function () {
-      return(((1+Math.random())*0x10000)|0).toString(16).substring(1);
-    };
-    return make4()+make4()+'-'+make4()+'-'+make4()+'-'+make4()+'-'+make4()+make4()+make4();
+    // There are 53 useful bits in our Math.random. Use 48 bits twice, plus 32:
+    var r1 = ((1+Math.random())*0x1000000000000).toString(16).substring(1),
+	r2 = ((1+Math.random())*0x1000000000000).toString(16).substring(1),
+        r3 = ((1+Math.random())*0x100000000).toString(16).substring(1);
+
+    return r1.substring(0, 4)+r1.substring(4, 8)+'-'+r2.substring(8, 12)+'-'+
+	   r2.substring(0, 4)+'-'+r2.substring(4, 8)+'-'+r2.substring(8, 12)+
+	   r3.substring(0, 4)+r3.substring(4, 8);
   };
 
   // Add some seed data to the Math.random. Any arguments may be provided, or none.
@@ -83,3 +87,11 @@
     }
   };
 }).call(Math);
+
+/*
+  for (var i = 0; i < 1000000; i++) {
+    var uuid;
+    uuid = Math.random.uuid();
+    //console.log(uuid); if (i > 10) break;
+  }
+*/
